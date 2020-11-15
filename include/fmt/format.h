@@ -3864,6 +3864,28 @@ make_format_to_n_args(const Args&... args) {
   return format_arg_store<buffer_context<Char>, Args...>(args...);
 }
 
+#ifdef FMT_COMPILE_TIME_CHECKS
+template <typename... Args> struct format_string {
+  string_view str;
+
+  template <size_t N> consteval format_string(const char (&s)[N]) : str(s) {
+    using checker = detail::format_string_checker<char, detail::error_handler,
+                                                  remove_cvref_t<Args>...>;
+    detail::parse_format_string<true>(string_view(s, N), checker(s, {}));
+  }
+
+  template <typename T,
+            FMT_ENABLE_IF(std::is_constructible_v<string_view, const T&>)>
+  format_string(const T& s) : str(s) {}
+};
+
+template <typename... Args>
+FMT_INLINE std::string format(
+    format_string<std::type_identity_t<Args>...> format_str, Args&&... args) {
+  return detail::vformat(format_str.str, make_format_args(args...));
+}
+#endif
+
 template <typename Char, enable_if_t<(!std::is_same<Char, char>::value), int>>
 std::basic_string<Char> detail::vformat(
     basic_string_view<Char> format_str,

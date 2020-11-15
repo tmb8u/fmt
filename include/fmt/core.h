@@ -1852,6 +1852,7 @@ FMT_INLINE std::basic_string<Char> vformat(
   return detail::vformat(to_string_view(format_str), args);
 }
 
+#ifndef FMT_COMPILE_TIME_CHECKS
 /**
   \rst
   Formats arguments and returns the result as a string.
@@ -1869,6 +1870,7 @@ FMT_INLINE std::basic_string<Char> format(const S& format_str, Args&&... args) {
   const auto& vargs = fmt::make_args_checked<Args...>(format_str, args...);
   return detail::vformat(to_string_view(format_str), vargs);
 }
+#endif
 
 FMT_API void vprint(string_view, format_args);
 FMT_API void vprint(std::FILE*, string_view, format_args);
